@@ -1,0 +1,50 @@
+services:
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    hostname: metabase
+    volumes:
+    - ./local/random:/dev/random:ro
+    expose:
+      - '${PORT_APP:-3000}'
+    environment:
+      VIRTUAL_HOST: '${VIRTUAL_HOST:-metabase.local}'
+      VIRTUAL_PORT: '${PORT_APP:-3000}'
+      MB_JETTY_PORT: '${PORT_APP:-3000}'
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: '${PORT_DB:-5432}'
+      MB_DB_USER_FILE: /run/secrets/db_user
+      MB_DB_PASS_FILE: /run/secrets/db_password
+      MB_DB_HOST: postgres
+    networks:
+      - metanet
+    depends_on:
+      - postgres
+    secrets:
+      - db_password
+      - db_user
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    hostname: postgres
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/db_user
+      POSTGRES_DB: metabase
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      PGPORT: '${PORT_DB:-5432}'
+    networks:
+      - metanet
+    secrets:
+      - db_password
+      - db_user
+networks:
+  metanet:
+    name: '${NETWORK_NAME:-default}'
+    external: '${NETWORK_EXTERNAL:-true}'
+    driver: '${NETWORK_DRIVER:-overlay}'
+secrets:
+   db_password:
+     file: .db_password
+   db_user:
+     file: .db_user

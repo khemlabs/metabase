@@ -1,0 +1,4 @@
+services:
+  metabase:
+    ports:
+      - "${BIND_PORT_APP:-3000}:${PORT_APP:-3000}"
